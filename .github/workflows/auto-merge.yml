@@ -1,4 +1,4 @@
-name: Auto PR & Merge
+name: Auto PR & Merge (Visible)
 
 on:
   schedule:
@@ -36,20 +36,26 @@ jobs:
 
       # 4. Create Pull Request
       - name: Create Pull Request
+        id: create-pr
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           title: "Auto PR $(date +%s)"
           body: "Automatically generated PR"
           head: ${{ env.BRANCH_NAME }}
           base: main
           draft: false 
 
-      # 5. Wait longer so PR appears in GitHub UI
-      - name: Wait before merging
-        run: sleep 45  # Increase wait time to 45 seconds
+      # 5. Log PR URL for reference
+      - name: Log PR URL
+        run: |
+          echo "PR created: https://github.com/${{ github.repository }}/pull/${{ steps.create-pr.outputs.pull-request-number }}"
 
-      # 6. Merge Pull Request
+      # 6. Wait to make PR visible in GitHub Open tab
+      - name: Wait before merging
+        run: sleep 90   # PR will be visible for 90 seconds
+
+      # 7. Merge Pull Request
       - name: Merge Pull Request
         uses: actions/github-script@v7
         with:
@@ -72,3 +78,9 @@ jobs:
                 console.log(`Merged PR #${pr.number}`);
               }
             }
+
+      # 8. Optional: Delete branch after merge
+      - name: Delete branch after merge
+        if: success()
+        run: |
+          git push origin --delete $BRANCH_NAME
