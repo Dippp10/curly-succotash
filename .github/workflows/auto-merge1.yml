@@ -1,0 +1,30 @@
+name: Create Auto PR
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          git config --global user.email "deepikakarthik697@gmail.com"
+          git config --global user.name "Dippp10"
+      - run: |
+          BRANCH_NAME="auto-branch-$(date +%s)"
+          git checkout -b $BRANCH_NAME
+          echo "Auto update $(date)" >> auto-update.txt
+          git add auto-update.txt
+          git commit -m "Auto commit for PR"
+          git push origin $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+      - uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Auto PR $(date +%s)"
+          body: "Automatically generated PR"
+          head: ${{ env.BRANCH_NAME }}
+          base: main
+          draft: false
