@@ -1,6 +1,5 @@
 name: Auto PR & Merge
 
-# Triggers: scheduled + manual
 on:
   schedule:
     - cron: "0 */6 * * *"   # Every 6 hours
@@ -14,17 +13,17 @@ jobs:
       pull-requests: write
 
     steps:
-      # Step 1: Checkout repo
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Configure Git identity (required for commits)
+      # 2. Configure Git identity
       - name: Configure Git user
         run: |
           git config --global user.email "deepikakarthik697@gmail.com"
           git config --global user.name "Dippp10"
 
-      # Step 3: Create a new branch and commit a small change
+      # 3. Create a new branch and commit
       - name: Create branch and commit
         run: |
           BRANCH_NAME="auto-branch-$(date +%s)"
@@ -35,7 +34,7 @@ jobs:
           git push origin $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
-      # Step 4: Create Pull Request
+      # 4. Create Pull Request
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
@@ -46,7 +45,11 @@ jobs:
           base: main
           draft: false
 
-      # Step 5: Merge Pull Request automatically
+      # 5. Wait a few seconds to ensure PR is registered in GitHub UI
+      - name: Wait before merging
+        run: sleep 10
+
+      # 6. Merge Pull Request
       - name: Merge Pull Request
         uses: actions/github-script@v7
         with:
