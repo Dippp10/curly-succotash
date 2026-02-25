@@ -1,30 +1,52 @@
 name: Create Auto PR
+
+# Triggers: scheduled + manual
 on:
   schedule:
-    - cron: "0 */6 * * *"
-  workflow_dispatch:
+    - cron: "0 */6 * * *"   # Every 6 hours
+  workflow_dispatch:        # Allows manual trigger
 
 jobs:
   create-pr:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+
     steps:
-      - uses: actions/checkout@v3
-      - run: |
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Configure Git identity
+      - name: Configure Git user
+        run: |
           git config --global user.email "deepikakarthik697@gmail.com"
           git config --global user.name "Dippp10"
-      - run: |
+
+      # Step 3: Create a new branch and commit
+      - name: Create branch and commit
+        run: |
           BRANCH_NAME="auto-branch-$(date +%s)"
           git checkout -b $BRANCH_NAME
           echo "Auto update $(date)" >> auto-update.txt
           git add auto-update.txt
           git commit -m "Auto commit for PR"
-          git push origin $BRANCH_NAME
+          
+          # Push branch using PAT
+          git push https://$GITHUB_ACTOR:${{ secrets.GH_TOKEN }}@github.com/Dippp10/curly-succotash.git $BRANCH_NAME
+          
+          # Save branch name for next step
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-      - uses: peter-evans/create-pull-request@v5
+
+      # Step 4: Create Pull Request
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           title: "Auto PR $(date +%s)"
           body: "Automatically generated PR"
           head: ${{ env.BRANCH_NAME }}
           base: main
           draft: false
+          
