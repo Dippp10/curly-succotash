@@ -1,4 +1,4 @@
-name: Create Auto PR
+name: Auto Create Pull Request
 
 # Triggers: scheduled + manual
 on:
@@ -36,7 +36,7 @@ jobs:
           # Push branch using PAT
           git push https://$GITHUB_ACTOR:${{ secrets.GH_TOKEN }}@github.com/Dippp10/curly-succotash.git $BRANCH_NAME
           
-          # Save branch name for next step
+          # Save branch name for PR creation
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       # Step 4: Create Pull Request
@@ -46,7 +46,6 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           title: "Auto PR $(date +%s)"
           body: "Automatically generated PR"
-          head: ${{ env.BRANCH_NAME }}
-          base: main
-          draft: false
-          
+          branch: ${{ env.BRANCH_NAME }}   # Correct input for source branch
+          base: main                       # Target branch
+          draft: false 
